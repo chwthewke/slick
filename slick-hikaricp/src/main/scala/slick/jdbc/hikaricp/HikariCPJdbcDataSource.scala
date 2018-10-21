@@ -41,7 +41,7 @@ object HikariCPJdbcDataSource extends JdbcDataSourceFactory {
     hconf.setIdleTimeout(c.getMillisecondsOr("idleTimeout", 600000))
     hconf.setMaxLifetime(c.getMillisecondsOr("maxLifetime", 1800000))
     hconf.setLeakDetectionThreshold(c.getMillisecondsOr("leakDetectionThreshold", 0))
-    hconf.setInitializationFailFast(c.getBooleanOr("initializationFailFast", false))
+    hconf.setInitializationFailTimeout(if (c.getBooleanOr("initializationFailFast", false)) 1 else -1)
     c.getStringOpt("connectionTestQuery").foreach(hconf.setConnectionTestQuery)
     c.getStringOpt("connectionInitSql").foreach(hconf.setConnectionInitSql)
     val numThreads = c.getIntOr("numThreads", 20)
