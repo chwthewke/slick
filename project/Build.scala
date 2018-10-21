@@ -12,9 +12,9 @@ import com.novocode.ornate.sbtplugin.OrnatePlugin.autoImport._
 
 object SlickBuild extends Build {
 
-  val slickVersion = "3.2.3"
+  val slickVersion = "3.2.3.HCP3-SNAPSHOT"
   val binaryCompatSlickVersion = "3.2.2" // Slick base version for binary compatibility checks
-  val scalaVersions = Seq("2.11.8", "2.12.4")
+  val scalaVersions = Seq("2.12.4")
 
   /** Dependencies for reuse in different parts of the build */
   object Dependencies {
@@ -99,6 +99,13 @@ object SlickBuild extends Build {
   def versionTag(v: String) = // get the tag for a version
     "v" + v
 
+
+  def nexusRepo(name: String, repo: String): Resolver = name at s"https://nexus.epitest.eu/repository/$repo"
+  val nexusReleases: Resolver = nexusRepo("Nexus releases", "maven-releases")
+  val nexusSnapshots: Resolver = nexusRepo("Nexus snapshots", "maven-snapshots")
+  
+
+
   lazy val sharedSettings = Seq(
     version := slickVersion,
     organizationName := "Typesafe",
@@ -117,10 +124,8 @@ object SlickBuild extends Build {
     ),
     logBuffered := false,
     repoKind := (if (version.value.trim.endsWith("SNAPSHOT")) "snapshots" else "releases"),
-    publishTo := (repoKind.value match {
-      case "snapshots" => Some("snapshots" at "https://oss.sonatype.org/content/repositories/snapshots")
-      case "releases" =>  Some("releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
-    }),
+    publishTo := Some(if (version.value.endsWith("-SNAPSHOT")) nexusSnapshots else nexusReleases),
+    resolvers ++= Seq(nexusReleases, nexusSnapshots),
     publishMavenStyle := true,
     publishArtifact in Test := false,
     pomIncludeRepository := { _ => false },
